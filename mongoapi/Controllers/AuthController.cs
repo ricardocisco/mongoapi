@@ -48,7 +48,8 @@ namespace mongoapi.Controllers
                 return Unauthorized("Invalid email or password.");
             }
 
-            return Ok(new { message = "Login successful!" });
+            var token = _authService.GenerateJwtToken(user);
+            return Ok(new { token, user, message = "Login successful!" });
         }
     }
 
