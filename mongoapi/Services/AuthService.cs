@@ -20,7 +20,6 @@ namespace mongoapi.Services
 
         public async Task<User?> RegisterAsync(User user)
         {
-            // Você pode adicionar validações ou lógica de negócios aqui
             await _mongoDBService.CreateAsync(user);
             return user;
         }
@@ -56,5 +55,19 @@ namespace mongoapi.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        public async Task<bool> AddReceivedEmailAsync(string userId, ReceivedEmail newEmail)
+        {
+            var user = await _mongoDBService.GetUserByIdAsync(userId);
+            if (user == null) return false;
+
+            newEmail.EmailId = Guid.NewGuid().ToString();
+            user.Emails.Received.Add(newEmail);
+
+            await _mongoDBService.UpdateAsync(userId, user);
+
+            return true;
+        }
+
     }
 }

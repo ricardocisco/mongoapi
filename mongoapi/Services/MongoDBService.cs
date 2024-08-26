@@ -16,7 +16,8 @@ namespace mongoapi.Services
             _usercollection = database.GetCollection<User>(mongoDBSettings.Value.CollectionName);
         }
 
-        public async Task CreateAsync(User user) { 
+        public async Task CreateAsync(User user)
+        {
             await _usercollection.InsertOneAsync(user);
             return;
         }
@@ -24,6 +25,16 @@ namespace mongoapi.Services
         public async Task<List<User>> GetAsync()
         {
             return await _usercollection.Find(new BsonDocument()).ToListAsync();
+        }
+
+        public async Task<User> GetUserByIdAsync(string userId)
+        {
+            return await _usercollection.Find(user => user.Id == userId).FirstOrDefaultAsync();
+        }
+
+        public async Task UpdateAsync(string userId, User updatedUser)
+        {
+            await _usercollection.ReplaceOneAsync(user => user.Id == userId, updatedUser);
         }
 
     }

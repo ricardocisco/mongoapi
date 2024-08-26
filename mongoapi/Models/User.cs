@@ -11,10 +11,10 @@ namespace mongoapi.Models
         public string? Id { get; set; }
 
         [BsonElement("nome")]
-        public string Nome { get; set; } = null!;
+        public string Nome { get; set; }
 
         [BsonElement("email")]
-        public string Email { get; set; } = null!;
+        public string Email { get; set; }
 
         [BsonElement("passwordHash")]
         public string PasswordHash { get; set; }
@@ -44,10 +44,13 @@ namespace mongoapi.Models
     public class Email
     {
         [BsonElement("emailId")]
-        public string EmailId { get; set; }
+        public string EmailId { get; set; } = Guid.NewGuid().ToString();
 
-        [BsonElement("recipient")]
-        public string Recipient { get; set; }
+        [BsonElement("sent")]
+        public string SentEmail { get; set; }
+
+        [BsonElement("sentNome")]
+        public string SentNome { get; set; }
 
         [BsonElement("subject")]
         public string Subject { get; set; }
@@ -62,10 +65,13 @@ namespace mongoapi.Models
     public class ReceivedEmail
     {
         [BsonElement("emailId")]
-        public string EmailId { get; set; }
+        public string EmailId { get; set; } = Guid.NewGuid().ToString();
 
-        [BsonElement("sender")]
-        public string Sender { get; set; }
+        [BsonElement("receivedEmail")]
+        public string ReceiveEmail { get; set; }
+
+        [BsonElement("receivedNome")]
+        public string ReceiveNome { get; set; }
 
         [BsonElement("subject")]
         public string Subject { get; set; }

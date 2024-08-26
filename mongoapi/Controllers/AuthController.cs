@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using mongoapi.Models;
 using mongoapi.Services;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace mongoapi.Controllers
 {
@@ -51,6 +52,30 @@ namespace mongoapi.Controllers
             var token = _authService.GenerateJwtToken(user);
             return Ok(new { token, user, message = "Login successful!" });
         }
+
+        [HttpPost("users/{userId}/receivedEmails")]
+        public async Task<IActionResult> AddReceivedEmail(string userId, [FromBody] ReceivedEmailRequest request)
+        {
+            var newEmail = new ReceivedEmail
+            {
+                ReceiveEmail = request.ReceiveEmail,
+                ReceiveNome = request.ReceiveNome,
+                Subject = request.Subject,
+                Body = request.Body,
+                ReceivedAt = request.ReceivedAt,
+                IsSpam = request.IsSpam
+            };
+
+            var success = await _authService.AddReceivedEmailAsync(userId, newEmail);
+
+            if (!success)
+            {
+                return NotFound("User not found.");
+            }
+
+            return Ok(new { message = "Received email added successfully!" });
+        }
+
     }
 
     public class RegisterRequest
@@ -64,5 +89,15 @@ namespace mongoapi.Controllers
     {
         public string Email { get; set; }
         public string Password { get; set; }
+    }
+
+    public class ReceivedEmailRequest
+    {
+        public string ReceiveEmail { get; set; }
+        public string ReceiveNome { get; set; }
+        public string Subject { get; set; }
+        public string Body { get; set; }
+        public DateTime ReceivedAt { get; set; }
+        public bool IsSpam { get; set; }
     }
 }

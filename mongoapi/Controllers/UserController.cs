@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using mongoapi.Models;
 using mongoapi.Services;
+using System.Security.Claims;
 
 namespace mongoapi.Controllers
 {
@@ -22,7 +23,6 @@ namespace mongoapi.Controllers
             await _mongoDBService.CreateAsync(user);
             return CreatedAtAction(nameof(Get), new {id = user.Id }, user);
         }
-
 
     }
 }
