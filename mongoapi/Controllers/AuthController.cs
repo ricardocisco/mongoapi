@@ -76,6 +76,29 @@ namespace mongoapi.Controllers
             return Ok(new { message = "Received email added successfully!" });
         }
 
+        [HttpPost("users/{userId}/sent-email")]
+        public async Task<IActionResult> SendEmail(string userId, [FromBody] SendEmailRequest request)
+        {
+            var newSentEmail = new Email
+            {
+                EmailId = Guid.NewGuid().ToString(),
+                SentEmail = request.SentEmail,
+                SentNome = request.SentNome,
+                Subject = request.Subject,
+                Body = request.Body,
+                SentAt = request.SentAt,
+            };
+
+            var success = await _authService.AddSentEmailAsync(userId, newSentEmail);
+
+            if (!success)
+            {
+                return NotFound("User not found");
+            }
+
+            return Ok(new { message = "Email sent successfully and recorded!"});
+        }
+
     }
 
     public class RegisterRequest
@@ -99,5 +122,15 @@ namespace mongoapi.Controllers
         public string Body { get; set; }
         public DateTime ReceivedAt { get; set; }
         public bool IsSpam { get; set; }
+    }
+
+    public class SendEmailRequest
+    {
+        public string EmailId { get; set; } = Guid.NewGuid().ToString();
+        public string SentEmail { get; set; }
+        public string SentNome { get; set; }
+        public string Subject { get; set; }
+        public string Body { get; set; }
+        public DateTime SentAt { get; set; }
     }
 }

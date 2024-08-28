@@ -69,5 +69,18 @@ namespace mongoapi.Services
             return true;
         }
 
+        public async Task<bool> AddSentEmailAsync(string userId, Email newSentEmail)
+        {
+            var user = await _mongoDBService.GetUserByIdAsync(userId);
+            if(user == null) return false;
+
+            user.Emails.Sent.Add(newSentEmail);
+
+            await _mongoDBService.UpdateAsync(userId, user);
+
+
+            return true;
+        }
+
     }
 }
