@@ -4,6 +4,8 @@ using System.Text;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace mongoapi.Services
 {
@@ -82,5 +84,12 @@ namespace mongoapi.Services
             return true;
         }
 
+        public async Task<Emails?> GetUserEmails(string userId)
+        {
+            var user = await _mongoDBService.GetUserByIdAsync(userId);
+            if (user == null) return null;
+
+            return user.Emails;
+        }
     }
 }

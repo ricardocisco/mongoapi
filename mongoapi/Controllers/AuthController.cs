@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
+﻿using Bogus;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using mongoapi.Models;
 using mongoapi.Services;
@@ -76,14 +77,18 @@ namespace mongoapi.Controllers
             return Ok(new { message = "Received email added successfully!" });
         }
 
-        [HttpPost("users/{userId}/sent-email")]
+        [HttpPost("users/{userId}/sendEmail")]
         public async Task<IActionResult> SendEmail(string userId, [FromBody] SendEmailRequest request)
         {
+            var faker = new Faker("en");
+
+            var sentNome = string.IsNullOrEmpty(request.SentNome) ? faker.Name.FullName() : request.SentNome;
+
             var newSentEmail = new Email
             {
                 EmailId = Guid.NewGuid().ToString(),
                 SentEmail = request.SentEmail,
-                SentNome = request.SentNome,
+                SentNome = sentNome,
                 Subject = request.Subject,
                 Body = request.Body,
                 SentAt = request.SentAt,
@@ -96,9 +101,21 @@ namespace mongoapi.Controllers
                 return NotFound("User not found");
             }
 
-            return Ok(new { message = "Email sent successfully and recorded!"});
+            return Ok(new { message = "Email sent successfully and recorded!" });
         }
 
+        [HttpGet("users/{userId}/emails")]
+        public async Task<IActionResult> GetUserEmails(string userId)
+        {
+            var emails = await _authService.GetUserEmails(userId);
+
+            if (emails == null)
+            {
+                return NotFound("User not found");
+            }
+
+            return Ok(emails);
+        }
     }
 
     public class RegisterRequest
@@ -127,8 +144,8 @@ namespace mongoapi.Controllers
     public class SendEmailRequest
     {
         public string EmailId { get; set; } = Guid.NewGuid().ToString();
-        public string SentEmail { get; set; }
         public string SentNome { get; set; }
+        public string SentEmail { get; set; }
         public string Subject { get; set; }
         public string Body { get; set; }
         public DateTime SentAt { get; set; }

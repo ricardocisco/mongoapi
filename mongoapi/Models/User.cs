@@ -23,7 +23,7 @@ namespace mongoapi.Models
         public Preferences Preferences { get; set; }
 
         [BsonElement("emails")]
-        public Emails Emails { get; set; }
+        public Emails Emails { get; set; } = new Emails();
     }
 
     public class Preferences
@@ -35,10 +35,10 @@ namespace mongoapi.Models
     public class Emails
     {
         [BsonElement("sent")]
-        public List<Email> Sent { get; set; }
+        public List<Email> Sent { get; set; } = new List<Email>();
 
         [BsonElement("received")]
-        public List<ReceivedEmail> Received { get; set; }
+        public List<ReceivedEmail> Received { get; set; } = new List<ReceivedEmail>();
     }
 
     public class Email
@@ -48,7 +48,6 @@ namespace mongoapi.Models
 
         [BsonElement("sent")]
         public string SentEmail { get; set; }
-
         [BsonElement("sentNome")]
         public string SentNome { get; set; }
 
