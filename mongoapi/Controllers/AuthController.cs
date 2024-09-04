@@ -30,7 +30,7 @@ namespace mongoapi.Controllers
             {
                 Nome = request.Nome,
                 Email = request.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 Preferences = new Preferences(),
                 Emails = new Emails()
             };
@@ -149,5 +149,17 @@ namespace mongoapi.Controllers
         public string Subject { get; set; }
         public string Body { get; set; }
         public DateTime SentAt { get; set; }
+    }
+
+    public class ArchiveEmailsRequest
+    {
+        public List<string> EmailIds { get; set; }
+        public string EmailType { get; set; } 
+    }
+
+    public class TrashEmailsRequest
+    {
+        public List<string> EmailIds { get; set; }
+        public string EmailType { get; set; } 
     }
 }

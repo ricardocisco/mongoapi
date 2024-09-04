@@ -30,7 +30,7 @@ namespace mongoapi.Services
         {
             var users = await _mongoDBService.GetAsync();
             var user = users.FirstOrDefault(u => u.Email == email);
-            if (user != null && BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password))
             {
                 return user;
             }
@@ -91,5 +91,6 @@ namespace mongoapi.Services
 
             return user.Emails;
         }
+
     }
 }
