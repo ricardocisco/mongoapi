@@ -29,7 +29,7 @@ namespace mongoapi.Models
     public class Preferences
     {
         [BsonElement("theme")]
-        public string Theme { get; set; }
+        public string Theme { get; set; } = "light";
     }
 
     public class Emails
@@ -50,21 +50,21 @@ namespace mongoapi.Models
     public class Email
     {
         [BsonElement("emailId")]
-        public string EmailId { get; set; } = Guid.NewGuid().ToString();
+        public string? EmailId { get; set; } = Guid.NewGuid().ToString();
 
         [BsonElement("sent")]
-        public string SentEmail { get; set; }
+        public string? SentEmail { get; set; }
         [BsonElement("sentNome")]
-        public string SentNome { get; set; }
+        public string? SentNome { get; set; }
 
         [BsonElement("subject")]
-        public string Subject { get; set; }
+        public string? Subject { get; set; }
 
         [BsonElement("body")]
-        public string Body { get; set; }
+        public string? Body { get; set; }
 
         [BsonElement("sentAt")]
-        public DateTime SentAt { get; set; }
+        public DateTime? SentAt { get; set; }
     }
 
     public class ReceivedEmail

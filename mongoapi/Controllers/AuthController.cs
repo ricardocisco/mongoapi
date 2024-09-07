@@ -43,6 +43,11 @@ namespace mongoapi.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest("Email and password are required.");
+            }
+
             var user = await _authService.LoginAsync(request.Email, request.Password);
 
             if (user == null)
@@ -116,6 +121,18 @@ namespace mongoapi.Controllers
 
             return Ok(emails);
         }
+
+        [HttpPost("reset")]
+        public async Task<IActionResult> ResetPassword([FromBody] PasswordResetDto dto)
+        {
+            var result = await _authService.ResetPasswordByEmailAsync(dto.Email, dto.NewPassword);
+            if (result)
+            {
+                return Ok("Senha redefinida com sucesso.");
+            }
+
+            return BadRequest("Falha ao redefinir a senha. Verifique o e-mail e tente novamente.");
+        }
     }
 
     public class RegisterRequest
@@ -161,5 +178,11 @@ namespace mongoapi.Controllers
     {
         public List<string> EmailIds { get; set; }
         public string EmailType { get; set; } 
+    }
+
+    public class PasswordResetDto
+    {
+        public string Email { get; set; }
+        public string NewPassword { get; set; }
     }
 }

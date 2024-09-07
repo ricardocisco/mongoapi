@@ -154,6 +154,7 @@ namespace mongoapi.Services
                                 Body = receivedEmail.Body,
                                 ReceivedAt = receivedEmail.ReceivedAt,
                                 ReceiveEmail = receivedEmail.ReceiveEmail,
+                                ReceiveNome = receivedEmail.ReceiveNome,
                                 IsSpam = receivedEmail.IsSpam
                             }
                         };
@@ -167,12 +168,125 @@ namespace mongoapi.Services
                 }
             }
 
-            var update = Builders<User>.Update
-                .Set(u => u.Emails, user.Emails)
-                .Set(u => u.Emails.Trash, user.Emails.Trash);
+            var update = Builders<User>.Update.Set(u => u.Emails, user.Emails);
 
             var result = await _usercollection.UpdateOneAsync(filter, update);
             return result.ModifiedCount > 0;
         }
+
+        public async Task<bool> MoveEmailsFromArchived(string userId, List<string> emailIds)
+        {
+            var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+            var user = await _usercollection.Find(filter).FirstOrDefaultAsync();
+
+            if (user == null) return false;
+
+            foreach (var emailId in emailIds)
+            {
+                var archivedEmail = user.Emails.Archived.FirstOrDefault(e => e.EmailId == emailId);
+                if (archivedEmail != null)
+                {
+                    if (archivedEmail.EmailType == "sent")
+                    {
+                        var sentEmail = new Email
+                        {
+                            EmailId = archivedEmail.EmailId,
+                            Subject = archivedEmail.EmailDataBase.Subject,
+                            Body = archivedEmail.EmailDataBase.Body,
+                            SentEmail = archivedEmail.EmailDataBase.SentEmail,
+                            SentNome = archivedEmail.EmailDataBase.SentNome,
+                            SentAt = archivedEmail.EmailDataBase.SentAt
+                        };
+                        user.Emails.Sent.Add(sentEmail);
+                    }
+                    else if (archivedEmail.EmailType == "received")
+                    {
+                        var receivedEmail = new ReceivedEmail
+                        {
+                            EmailId = archivedEmail.EmailId,
+                            Subject = archivedEmail.EmailDataBase.Subject,
+                            Body = archivedEmail.EmailDataBase.Body,
+                            ReceivedAt = archivedEmail.EmailDataBase.ReceivedAt,
+                            ReceiveEmail = archivedEmail.EmailDataBase.ReceiveEmail,
+                            ReceiveNome = archivedEmail.EmailDataBase.ReceiveNome,
+                            IsSpam = archivedEmail.EmailDataBase.IsSpam
+                        };
+                        user.Emails.Received.Add(receivedEmail);
+                    }
+
+                    user.Emails.Archived.Remove(archivedEmail);
+                }
+            }
+
+            var update = Builders<User>.Update.Set(u => u.Emails, user.Emails);
+            var result = await _usercollection.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<bool> MoveEmailsFromTrash(string userId, List<string> emailIds)
+        {
+            var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+            var user = await _usercollection.Find(filter).FirstOrDefaultAsync();
+
+            if (user == null) return false;
+
+            foreach (var emailId in emailIds)
+            {
+                var trashdEmail = user.Emails.Trash.FirstOrDefault(e => e.EmailId == emailId);
+                if (trashdEmail != null)
+                {
+                    if (trashdEmail.EmailType == "sent")
+                    {
+                        var sentEmail = new Email
+                        {
+                            EmailId = trashdEmail.EmailId,
+                            Subject = trashdEmail.EmailDataBase.Subject,
+                            Body = trashdEmail.EmailDataBase.Body,
+                            SentEmail = trashdEmail.EmailDataBase.SentEmail,
+                            SentNome = trashdEmail.EmailDataBase.SentNome,
+                            SentAt = trashdEmail.EmailDataBase.SentAt
+                        };
+                        user.Emails.Sent.Add(sentEmail);
+                    }
+                    else if (trashdEmail.EmailType == "received")
+                    {
+                        var receivedEmail = new ReceivedEmail
+                        {
+                            EmailId = trashdEmail.EmailId,
+                            Subject = trashdEmail.EmailDataBase.Subject,
+                            Body = trashdEmail.EmailDataBase.Body,
+                            ReceivedAt = trashdEmail.EmailDataBase.ReceivedAt,
+                            ReceiveEmail = trashdEmail.EmailDataBase.ReceiveEmail,
+                            ReceiveNome = trashdEmail.EmailDataBase.ReceiveNome,
+                            IsSpam = trashdEmail.EmailDataBase.IsSpam
+                        };
+                        user.Emails.Received.Add(receivedEmail);
+                    }
+
+                    user.Emails.Trash.Remove(trashdEmail);
+                }
+            }
+
+            var update = Builders<User>.Update.Set(u => u.Emails, user.Emails);
+            var result = await _usercollection.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<bool> DeleteEmailsFromTrashAsync(string userId, List<string> emailIds)
+        {
+            var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+            var update = Builders<User>.Update.PullFilter(u => u.Emails.Trash, e => emailIds.Contains(e.EmailId));
+
+            var result = await _usercollection.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<User> GetByEmailAsync(string email)
+        {
+            return await _usercollection.Find(user => user.Email == email).FirstOrDefaultAsync();
+        }
+
     }
+
+
 }

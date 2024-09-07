@@ -1,11 +1,9 @@
 ﻿using mongoapi.Models;
 using System.Security.Claims;
 using System.Text;
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http.HttpResults;
+using MongoDB.Driver;
 
 namespace mongoapi.Services
 {
@@ -92,5 +90,18 @@ namespace mongoapi.Services
             return user.Emails;
         }
 
+        public async Task<bool> ResetPasswordByEmailAsync(string email, string newPassword)
+        {
+            var user = await _mongoDBService.GetByEmailAsync(email);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _mongoDBService.UpdateAsync(user.Id, user);
+
+            return true;
+        }
     }
 }
