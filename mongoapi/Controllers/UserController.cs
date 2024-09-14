@@ -34,7 +34,7 @@ namespace mongoapi.Controllers
             {
                 return Ok();
             }
-            return BadRequest("Failed to move emails.");
+            return BadRequest("Falha ao mover emails");
         }
 
         [HttpPost("{userId}/moveToTrash")]
@@ -45,7 +45,7 @@ namespace mongoapi.Controllers
             {
                 return Ok();
             }
-            return BadRequest("Failed to move emails.");
+            return BadRequest("Falha ao mover emails");
 
         }
 
@@ -57,7 +57,7 @@ namespace mongoapi.Controllers
             {
                 return Ok();
             }
-            return BadRequest("Failed to move emails from archive.");
+            return BadRequest("Falha ao mover emails de arquivados.");
         }
 
         [HttpPost("{userId}/moveFromTrash")]
@@ -68,7 +68,7 @@ namespace mongoapi.Controllers
             {
                 return Ok();
             }
-            return BadRequest("Failed to move emails from trash.");
+            return BadRequest("Falha ao mover emails da lixeira.");
         }
 
         [HttpPost("deleteEmails")]
@@ -102,11 +102,53 @@ namespace mongoapi.Controllers
 
             return Ok(user);
         }
-    }
 
+        [HttpPut("users/{id}/fontsize")]
+        public async Task<IActionResult> UpdateFontSize(string id, [FromBody] UpdateFontRequest request)
+        {
+            var user = await _mongoDBService.GetUserByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound("Usuário não encontrado");
+            }
+
+            user.Preferences.FontSize = request.FontSize;
+            await _mongoDBService.UpdateAsync(id, user);
+
+            return Ok(user);
+        }
+
+        [HttpPut("users/{id}/language")]
+        public async Task<IActionResult> UpdateLanguage(string id, [FromBody] UpdateLanguageRequest request)
+        {
+            var user = await _mongoDBService.GetUserByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound("Usuário não encontrado");
+            }
+
+            user.Preferences.Language = request.Language;
+            await _mongoDBService.UpdateAsync(id, user);
+
+            return Ok(user);
+        }
+
+    }
     public class UpdateThemeRequest
     {
         public string Theme { get; set; }
+    }
+
+    public class UpdateFontRequest
+    {
+        public float FontSize { get; set; }
+
+    }
+
+    public class UpdateLanguageRequest
+    {
+        public string Language { get; set; }
+
     }
 
     public class MoveFromArchived

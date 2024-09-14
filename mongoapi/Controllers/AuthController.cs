@@ -23,7 +23,7 @@ namespace mongoapi.Controllers
         {
             if (await _authService.LoginAsync(request.Email, request.Password) != null)
             {
-                return BadRequest("User already exists.");
+                return BadRequest("Usuario já existente!");
             }
 
             var user = new User
@@ -37,7 +37,7 @@ namespace mongoapi.Controllers
 
             await _authService.RegisterAsync(user);
 
-            return Ok(new { message = "User registered successfully!" });
+            return Ok(new { message = "Usuario cadastrado com sucesso!" });
         }
 
         [HttpPost("login")]
@@ -45,18 +45,18 @@ namespace mongoapi.Controllers
         {
             if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
             {
-                return BadRequest("Email and password are required.");
+                return BadRequest("Email e senha são obrigatorios!.");
             }
 
             var user = await _authService.LoginAsync(request.Email, request.Password);
 
             if (user == null)
             {
-                return Unauthorized("Invalid email or password.");
+                return Unauthorized("Email ou senha invalidos.");
             }
 
             var token = _authService.GenerateJwtToken(user);
-            return Ok(new { token, user, message = "Login successful!" });
+            return Ok(new { token, user, message = "Login realizado!" });
         }
 
         [HttpPost("users/{userId}/receivedEmails")]
@@ -76,10 +76,10 @@ namespace mongoapi.Controllers
 
             if (!success)
             {
-                return NotFound("User not found.");
+                return NotFound("Usuario não encontrado.");
             }
 
-            return Ok(new { message = "Received email added successfully!" });
+            return Ok(new { message = "Email recebido com sucesso!" });
         }
 
         [HttpPost("users/{userId}/sendEmail")]
@@ -103,10 +103,10 @@ namespace mongoapi.Controllers
 
             if (!success)
             {
-                return NotFound("User not found");
+                return NotFound("Usuario não encontrado");
             }
 
-            return Ok(new { message = "Email sent successfully and recorded!" });
+            return Ok(new { message = "Email enviado com sucesso!" });
         }
 
         [HttpGet("users/{userId}/emails")]
@@ -116,7 +116,7 @@ namespace mongoapi.Controllers
 
             if (emails == null)
             {
-                return NotFound("User not found");
+                return NotFound("Usuario não encontrado");
             }
 
             return Ok(emails);
