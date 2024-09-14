@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
+﻿using Bogus;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using mongoapi.Models;
 using mongoapi.Services;
@@ -29,7 +30,7 @@ namespace mongoapi.Controllers
             {
                 Nome = request.Nome,
                 Email = request.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 Preferences = new Preferences(),
                 Emails = new Emails()
             };
@@ -42,6 +43,11 @@ namespace mongoapi.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest("Email and password are required.");
+            }
+
             var user = await _authService.LoginAsync(request.Email, request.Password);
 
             if (user == null)
@@ -76,6 +82,57 @@ namespace mongoapi.Controllers
             return Ok(new { message = "Received email added successfully!" });
         }
 
+        [HttpPost("users/{userId}/sendEmail")]
+        public async Task<IActionResult> SendEmail(string userId, [FromBody] SendEmailRequest request)
+        {
+            var faker = new Faker("en");
+
+            var sentNome = string.IsNullOrEmpty(request.SentNome) ? faker.Name.FullName() : request.SentNome;
+
+            var newSentEmail = new Email
+            {
+                EmailId = Guid.NewGuid().ToString(),
+                SentEmail = request.SentEmail,
+                SentNome = sentNome,
+                Subject = request.Subject,
+                Body = request.Body,
+                SentAt = request.SentAt,
+            };
+
+            var success = await _authService.AddSentEmailAsync(userId, newSentEmail);
+
+            if (!success)
+            {
+                return NotFound("User not found");
+            }
+
+            return Ok(new { message = "Email sent successfully and recorded!" });
+        }
+
+        [HttpGet("users/{userId}/emails")]
+        public async Task<IActionResult> GetUserEmails(string userId)
+        {
+            var emails = await _authService.GetUserEmails(userId);
+
+            if (emails == null)
+            {
+                return NotFound("User not found");
+            }
+
+            return Ok(emails);
+        }
+
+        [HttpPost("reset")]
+        public async Task<IActionResult> ResetPassword([FromBody] PasswordResetDto dto)
+        {
+            var result = await _authService.ResetPasswordByEmailAsync(dto.Email, dto.NewPassword);
+            if (result)
+            {
+                return Ok("Senha redefinida com sucesso.");
+            }
+
+            return BadRequest("Falha ao redefinir a senha. Verifique o e-mail e tente novamente.");
+        }
     }
 
     public class RegisterRequest
@@ -99,5 +156,33 @@ namespace mongoapi.Controllers
         public string Body { get; set; }
         public DateTime ReceivedAt { get; set; }
         public bool IsSpam { get; set; }
+    }
+
+    public class SendEmailRequest
+    {
+        public string EmailId { get; set; } = Guid.NewGuid().ToString();
+        public string SentNome { get; set; }
+        public string SentEmail { get; set; }
+        public string Subject { get; set; }
+        public string Body { get; set; }
+        public DateTime SentAt { get; set; }
+    }
+
+    public class ArchiveEmailsRequest
+    {
+        public List<string> EmailIds { get; set; }
+        public string EmailType { get; set; } 
+    }
+
+    public class TrashEmailsRequest
+    {
+        public List<string> EmailIds { get; set; }
+        public string EmailType { get; set; } 
+    }
+
+    public class PasswordResetDto
+    {
+        public string Email { get; set; }
+        public string NewPassword { get; set; }
     }
 }

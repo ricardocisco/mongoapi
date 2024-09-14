@@ -1,9 +1,9 @@
 ﻿using mongoapi.Models;
 using System.Security.Claims;
 using System.Text;
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
 
 namespace mongoapi.Services
 {
@@ -28,7 +28,7 @@ namespace mongoapi.Services
         {
             var users = await _mongoDBService.GetAsync();
             var user = users.FirstOrDefault(u => u.Email == email);
-            if (user != null && BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password))
             {
                 return user;
             }
@@ -69,5 +69,39 @@ namespace mongoapi.Services
             return true;
         }
 
+        public async Task<bool> AddSentEmailAsync(string userId, Email newSentEmail)
+        {
+            var user = await _mongoDBService.GetUserByIdAsync(userId);
+            if(user == null) return false;
+
+            user.Emails.Sent.Add(newSentEmail);
+
+            await _mongoDBService.UpdateAsync(userId, user);
+
+
+            return true;
+        }
+
+        public async Task<Emails?> GetUserEmails(string userId)
+        {
+            var user = await _mongoDBService.GetUserByIdAsync(userId);
+            if (user == null) return null;
+
+            return user.Emails;
+        }
+
+        public async Task<bool> ResetPasswordByEmailAsync(string email, string newPassword)
+        {
+            var user = await _mongoDBService.GetByEmailAsync(email);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _mongoDBService.UpdateAsync(user.Id, user);
+
+            return true;
+        }
     }
 }
