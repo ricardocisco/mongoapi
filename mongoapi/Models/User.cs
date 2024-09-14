@@ -30,6 +30,15 @@ namespace mongoapi.Models
     {
         [BsonElement("theme")]
         public string Theme { get; set; } = "light";
+
+        [BsonElement("fontsize")]
+        public float FontSize { get; set; } = 16f;
+
+        [BsonElement("emailsortorder")]
+        public string EmailSortOrder { get; set; } = "date";
+
+        [BsonElement("language")]
+        public string Language { get; set; } = "br";
     }
 
     public class Emails
