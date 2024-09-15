@@ -69,6 +69,28 @@ namespace mongoapi.Services
             return true;
         }
 
+        public async Task<bool> IsSpam (ReceivedEmail email)
+        {
+            List<string> spamKeywords = new List<string>
+            {
+                "ganhe dinheiro",
+                "oferta",
+                "grátis",
+                "prêmio",
+                "promoção",
+                "investimento",
+                "clique aqui",
+                "empréstimo",
+                "compre agora",
+                "urgente",
+                "100% grátis",
+                "sem custo",
+                "bom trabalho"
+            };
+            string emailBodyLower = email.Body.ToLower();
+            return spamKeywords.Any(keyword => emailBodyLower.Contains(keyword.ToLower()));
+        }
+
         public async Task<bool> AddSentEmailAsync(string userId, Email newSentEmail)
         {
             var user = await _mongoDBService.GetUserByIdAsync(userId);
