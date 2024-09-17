@@ -68,9 +68,10 @@ namespace mongoapi.Controllers
                 ReceiveNome = request.ReceiveNome,
                 Subject = request.Subject,
                 Body = request.Body,
-                ReceivedAt = request.ReceivedAt,
-                IsSpam = request.IsSpam
+                ReceivedAt = request.ReceivedAt 
             };
+
+            newEmail.IsSpam = await _authService.IsSpam(newEmail);
 
             var success = await _authService.AddReceivedEmailAsync(userId, newEmail);
 
