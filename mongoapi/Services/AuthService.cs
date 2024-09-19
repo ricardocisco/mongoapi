@@ -125,5 +125,10 @@ namespace mongoapi.Services
 
             return true;
         }
+
+        internal async Task<List<Email>> GetSentEmailsAsync(string userId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
