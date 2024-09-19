@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using mongoapi.Models;
 using mongoapi.Services;
 using MongoDB.Bson.Serialization.Attributes;
+using System;
 
 namespace mongoapi.Controllers
 {
@@ -90,6 +91,8 @@ namespace mongoapi.Controllers
 
             var sentNome = string.IsNullOrEmpty(request.SentNome) ? faker.Name.FullName() : request.SentNome;
 
+            var emails = await _authService.GetUserEmails(userId);
+
             var newSentEmail = new Email
             {
                 EmailId = Guid.NewGuid().ToString(),
@@ -99,17 +102,49 @@ namespace mongoapi.Controllers
                 Body = request.Body,
                 SentAt = request.SentAt,
             };
+            var i = 0;
 
-            var success = await _authService.AddSentEmailAsync(userId, newSentEmail);
+            DateTime? sentDataHoraCorrespondente = null;
 
-            if (!success)
+            while (i == 0)
             {
-                return NotFound("Usuario não encontrado");
+                foreach (var email in emails.Sent)
+                {
+                    if (email.SentEmail == newSentEmail.SentEmail && email.Body == newSentEmail.Body)
+                    {
+                        sentDataHoraCorrespondente = email.SentAt;
+
+                        i = 1;
+                    }
+                }
+            };
+
+            TimeSpan toleranciaTempo = TimeSpan.FromMinutes(1);
+
+            if (sentDataHoraCorrespondente.HasValue)
+            {
+                TimeSpan diferencaTempo = DateTime.Now - sentDataHoraCorrespondente.Value;
+                if (diferencaTempo > toleranciaTempo)
+                {
+                    var success = await _authService.AddSentEmailAsync(userId, newSentEmail);
+
+                    if (!success)
+                    {
+                        return NotFound("Usuario não encontrado");
+                    }
+                    return Ok(new { message = "Email enviado com sucesso!" });
+                }
+                else
+                {
+                    return BadRequest(new { message = "Email não enviado, possível SPAM!" });
+                }
             }
-
-            return Ok(new { message = "Email enviado com sucesso!" });
-        }
-
+            else
+            {
+                return Ok(new { message = "Email enviado com sucesso!" });
+            }
+        }           
+            
         [HttpGet("users/{userId}/emails")]
         public async Task<IActionResult> GetUserEmails(string userId)
         {
